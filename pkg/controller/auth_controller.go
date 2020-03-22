@@ -5,16 +5,19 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/todo_list_auth_service/pkg/entities/requests"
 	"github.com/todo_list_auth_service/pkg/entities/responses"
-	dm "github.com/todo_list_auth_service/pkg/service/dependency_manager"
+	"github.com/todo_list_auth_service/pkg/service"
 	"net/http"
 	"time"
 )
 
-func NewTokenController(rw http.ResponseWriter, req *http.Request){
+type Controller struct {
+	Service service.AuthServiceInterface
+}
+
+func (controller Controller) NewTokenController(rw http.ResponseWriter, req *http.Request){
 	logrus.WithField("EventType", "NewTokenController").WithField("Action","Request").Info("NewTokenController Start")
 	authStruct := requests.NewTokenRequestsStruct{}
 	successResponse := responses.Response{}
-	serviceObj := dm.NewService(dm.AUTHSERVICE)
 	ctx, cancel := context.WithTimeout(req.Context(), time.Second*10)
 	defer cancel()
 	err := authStruct.PopulateNewTokenRequestsStruct(req.Body)
@@ -23,7 +26,7 @@ func NewTokenController(rw http.ResponseWriter, req *http.Request){
 		responses.HandleError(rw, err)
 		return
 	}
-	token, err := serviceObj.NewTokenService(ctx, authStruct)
+	token, err := controller.Service.NewTokenService(ctx, authStruct)
 	if err != nil{
 		logrus.WithField("EventType", "NewTokenController").WithError(err).Error("NewTokenService Failed")
 		responses.HandleError(rw, err)
@@ -35,13 +38,12 @@ func NewTokenController(rw http.ResponseWriter, req *http.Request){
 	return
 }
 
-func AuthenticateController(rw http.ResponseWriter, req *http.Request){
+func (controller Controller) AuthenticateController(rw http.ResponseWriter, req *http.Request){
 	logrus.WithField("EventType", "AuthenticateController").WithField("Action","Request").Info("AuthenticateController Start")
 	authStruct := requests.AuthRequestsStruct{}
 	successResponse := responses.Response{}
 	requestsHeader := req.Header
 	token := requestsHeader.Get("Authorization")
-	serviceObj := dm.NewService(dm.AUTHSERVICE)
 	ctx, cancel := context.WithTimeout(req.Context(), time.Second*10)
 	defer cancel()
 	err := authStruct.PopulateAuthRequestsStruct(token)
@@ -56,7 +58,7 @@ func AuthenticateController(rw http.ResponseWriter, req *http.Request){
 		responses.HandleError(rw, err)
 		return
 	}
-	err = serviceObj.AuthService(ctx, authStruct)
+	err = controller.Service.AuthService(ctx, authStruct)
 	if err != nil {
 		logrus.WithField("EventType", "AuthenticateController").WithError(err).Error("AuthService Failed")
 		responses.HandleError(rw, err)
