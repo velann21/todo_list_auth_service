@@ -1,0 +1,4 @@
+dist/
+.idea
+docker/authservice_bootup
+
