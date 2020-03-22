@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: authsrv
-          image: singaravelan21/todo_list_auth_srv:v1.0.3
+          image: singaravelan21/todo_list_auth_srv:v1.0.6
   replicas: 3
   selector:
     matchLabels:
