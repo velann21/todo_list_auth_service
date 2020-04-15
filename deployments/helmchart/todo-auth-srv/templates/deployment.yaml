@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  labels:
+    app: auth
+    type: backend
+
+spec:
+  template:
+    metadata:
+      name: auth-pod
+      labels:
+        app: auth
+        type: backend
+    spec:
+      containers:
+        - name: authsrv
+          image: singaravelan21/todo_list_auth_srv:{{ .Values.tag }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: auth
